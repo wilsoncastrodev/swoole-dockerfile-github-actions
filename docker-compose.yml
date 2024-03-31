@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  teste:
+    container_name: "teste"
+    build:
+      context: app
+      dockerfile: teste.dockerfile
+    image: wcastrodev/service-teste:latest
+    working_dir: /var/www/app
+    ports:
+      - "9801:9801"
+
+  postgres:
+    container_name: "teste-postgres"
+    image: postgres:15
+    restart: always
+    volumes:
+        - ./database-app:/var/lib/postgresql/data
+    environment:
+        POSTGRES_USER: contato@wilsoncastro.dev
+        POSTGRES_PASSWORD: teste123
+        POSTGRES_DB: teste
+    ports:
+        - "5432:5432"
+
+  pgadmin:
+    container_name: "teste-pgadmin4"
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "9901:80"
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: contato@wilsoncastro.dev
+      PGADMIN_DEFAULT_PASSWORD: teste123
