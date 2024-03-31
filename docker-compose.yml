@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  teste:
+    container_name: "teste"
+    build:
+      context: app
+      dockerfile: teste.dockerfile
+    image: wcastrodev/service-teste:latest
+    working_dir: /var/www/app
+    ports:
+      - "9801:9801"
+  watchtower:
+    image: containrrr/watchtower
+    command: --interval 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+    

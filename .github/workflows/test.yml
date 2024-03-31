@@ -1,0 +1,47 @@
+name: first-deploy-github-actions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: KengoTODA/actions-setup-docker-compose@v1
+        with:
+          version: '2.24.6'
+      
+      - name: Logando no Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Buscando as tags mais recentes do repositório
+        run: git fetch --tags 
+        
+      - name: Executando o container teste
+        run: docker-compose up -d --build teste && sleep 5
+      
+      - name: Verificando o status da resposta do servidor
+        run: docker-compose exec -T teste curl -IsSf http://localhost:9801/ | head -n 1
+
+      - name: Executando os testes automatizados com PHPUnit 
+        run: docker-compose exec -T teste php artisan test
+
+      - name: Criando uma nova tag para a imagem Docker
+        env:
+          VERSION: $(git describe --tags `git rev-list --tags --max-count=1`)
+        run: docker tag wcastrodev/service-teste:latest wcastrodev/service-teste:${{ env.VERSION }}
+
+      - name: Enviando as imagens para Docker Hub
+        env:
+          VERSION: $(git describe --tags `git rev-list --tags --max-count=1`)
+        run: |
+          docker push wcastrodev/service-teste:${{ env.VERSION }}
+          docker push wcastrodev/service-teste:latest
