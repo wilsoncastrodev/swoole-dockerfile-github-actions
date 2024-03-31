@@ -1,0 +1,21 @@
+name: start-laravel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: KengoTODA/actions-setup-docker-compose@v1
+        with:
+          version: '2.24.6'
+      - name: Github Event Tag Name
+        run: |
+          echo "${{ steps.meta.outputs.tags }}"
+      - name: Executando o container teste
+        run: docker-compose up -d teste
+      - name: Executando os testes 
+        run: docker-compose exec -T teste php artisan test
